@@ -3,175 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>网页访问统计</title>
+<title>跨设备点击次数统计</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg-gradient: #0f172a, #1e293b;
-  --card-bg: #ffffff;
-  --text-color: #222222;
-  --sub-text: #666666;
-  --main-color: #ffcc22;
-  --main-dark: #ff9900;
-  --shadow: rgba(0,0,0,0.12);
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui, sans-serif;}
+body{
+    background:#f5f7fa;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
 }
-.dark{
-  --bg-gradient:#020617,#111827;
-  --card-bg:#1f2937;
-  --text-color:#f3f4f6;
-  --sub-text:#9ca3af;
-  --shadow:rgba(0,0,0,0.4);
+.card{
+    background:#fff;
+    padding:40px 50px;
+    border-radius:16px;
+    box-shadow:0 3px 15px rgba(0,0,0,0.08);
+    text-align:center;
 }
-body {
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background: linear-gradient(135deg, var(--bg-gradient));
-  font-family:system-ui, sans-serif;
-  overflow:hidden;
-  transition: background 0.5s ease;
+h1{
+    color:#222;
+    margin-bottom:30px;
+    font-size:26px;
 }
-#canvas-bg{
-  position:fixed;
-  top:0;left:0;
-  width:100vw;height:100vh;
-  z-index:-1;
+.item{
+    margin:20px 0;
+    font-size:20px;
+    color:#444;
 }
-.box {
-  text-align:center;
-  background:var(--card-bg);
-  padding:48px 64px;
-  border-radius:20px;
-  box-shadow:0 4px 20px var(--shadow);
-  animation: fadeIn 0.8s ease-out;
-  transition: transform 0.3s, box-shadow 0.3s, background 0.5s;
+.num{
+    font-weight:bold;
+    color:#3b82f6;
+    font-size:38px;
+    margin:8px 0;
 }
-.box:hover{
-  transform: translateY(-6px);
-  box-shadow:0 10px 30px var(--shadow);
+#clickBtn{
+    margin-top:24px;
+    padding:16px 40px;
+    font-size:22px;
+    border:none;
+    border-radius:12px;
+    background:#3b82f6;
+    color:white;
+    cursor:pointer;
 }
-@keyframes fadeIn {
-  from {opacity:0; transform: translateY(20px);}
-  to {opacity:1; transform: translateY(0);}
+#clickBtn:active{
+    background:#2563eb;
 }
-#tip{
-  font-size:28px;
-  color:var(--text-color);
+#clickBtn:disabled{
+    background:#94b8e8;
+    cursor:not-allowed;
 }
-.count-num{
-  color:var(--main-dark);
-  font-weight:bold;
-  font-size:34px;
-  display:inline-block;
-}
-/* 数字弹跳动画 */
-@keyframes bounceNum {
-  0%{transform:scale(1)}
-  50%{transform:scale(1.2)}
-  100%{transform:scale(1)}
-}
-.num-bounce{
-  animation: bounceNum 0.4s ease;
-}
-#busuanzi_container_site_pv{
-  display:none;
-  animation: textFade 0.6s ease;
-}
-@keyframes textFade {
-  from {opacity:0;}
-  to {opacity:1;}
-}
-.loading-text{
-  font-size:24px;
-  color:var(--sub-text);
-}
-#themeBtn{
-  margin-top:24px;
-  padding:10px 20px;
-  background:var(--main-color);
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  cursor:pointer;
-  transition:0.3s;
-}
-#themeBtn:hover{
-  background:var(--main-dark);
-  color:#fff;
+.tip{
+    margin-top:30px;
+    color:#777;
+    font-size:14px;
 }
 </style>
 </head>
 <body>
-<canvas id="canvas-bg"></canvas>
-<div class="box">
-  <p class="loading-text" id="loading">加载中...</p>
-  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-  <span id="busuanzi_container_site_pv">
-    <p id="tip">本网页总访问次数：<span class="count-num" id="busuanzi_value_site_pv"></span> 次</p>
-  </span>
-  <button id="themeBtn">切换深色/浅色模式</button>
+<div class="card">
+    <h1>📊 点击次数统计</h1>
+    <div class="item">
+        全局累计点击次数
+        <div class="num" id="clickCount">加载中...</div>
+    </div>
+    <!-- 按钮文字改为别点我 -->
+    <button id="clickBtn">别点我</button>
+    <p class="tip">点击【别点我】按钮增加次数<br>所有设备共用统计，关闭网页数据不会清除</p>
 </div>
 
 <script>
-// 粒子星空背景
-const canvas = document.getElementById('canvas-bg');
-const ctx = canvas.getContext('2d');
-function resizeCanvas(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-}
-resizeCanvas();
-window.addEventListener('resize',resizeCanvas);
-const particles = [];
-class Particle{
-  constructor(){
-    this.x = Math.random()*canvas.width;
-    this.y = Math.random()*canvas.height;
-    this.r = Math.random()*1.5 + 0.2;
-    this.speedX = (Math.random()-0.5)*0.3;
-    this.speedY = (Math.random()-0.5)*0.3;
-  }
-  update(){
-    this.x += this.speedX;
-    this.y += this.speedY;
-    if(this.x<0) this.x=canvas.width;
-    if(this.x>canvas.width) this.x=0;
-    if(this.y<0) this.y=canvas.height;
-    if(this.y>canvas.height) this.y=0;
-  }
-  draw(){
-    ctx.beginPath();
-    ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
-    ctx.fillStyle="#ffffff";
-    ctx.fill();
-  }
-}
-for(let i=0;i<120;i++) particles.push(new Particle());
-function animateParticles(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  particles.forEach(p=>{p.update();p.draw();})
-  requestAnimationFrame(animateParticles);
-}
-animateParticles();
+// 👉 修改这里！写一个独属于你的计数器名称（英文+下划线，不要中文）
+const counterKey = "shandongkeji_click_2026";
+const apiBase = "https://countapi.mileshilliard.com/api/v1";
+const countDom = document.getElementById("clickCount");
+const clickBtn = document.getElementById("clickBtn");
 
-// 不蒜子加载逻辑（只监听PV）
-const checkInterval = setInterval(()=>{
-  const container = document.getElementById("busuanzi_container_site_pv");
-  const numEl = document.getElementById("busuanzi_value_site_pv");
-  if(container.style.display !== "none"){
-    clearInterval(checkInterval);
-    document.getElementById("loading").style.display = "none";
-    container.style.display = "block";
-    numEl.classList.add("num-bounce");
+// 获取当前云端计数
+async function getCount(){
+  try{
+    const res = await fetch(`${apiBase}/get/${counterKey}`);
+    const json = await res.json();
+    countDom.innerText = json.value || 0;
+  }catch(e){
+    countDom.innerText = "网络错误";
   }
-}, 200);
-
-// 深色浅色切换
-const themeBtn = document.getElementById('themeBtn');
-themeBtn.onclick = ()=>{
-  document.body.classList.toggle('dark');
 }
+
+// 按钮点击：云端数字 +1
+clickBtn.onclick = async function(){
+    clickBtn.disabled = true;
+  try{
+    const res = await fetch(`${apiBase}/hit/${counterKey}`);
+    const json = await res.json();
+    countDom.innerText = json.value;
+  }catch(err){
+    alert("API调用失败，网络问题");
+  }
+  clickBtn.disabled = false;
+}
+
+// 页面打开立刻读取数字
+getCount();
 </script>
 </body>
 </html>
