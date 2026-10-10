@@ -1,149 +1,91 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>宿舍相册 | GitHub Pages</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, sans-serif;
-        }
-        body {
-            background-color: #f4f6f8;
-            padding: 30px;
-        }
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .desc{
-            text-align:center;
-            color:#666;
-            margin-bottom:24px;
-        }
-        .upload-box {
-            border: 2px dashed #409eff;
-            border-radius: 12px;
-            padding: 40px 20px;
-            text-align: center;
-            background: #fff;
-            cursor: pointer;
-            transition: 0.3s;
-            margin-bottom:30px;
-        }
-        .upload-box:hover {
-            background: #ecf5ff;
-        }
-        .upload-box p {
-            color:#666;
-            margin-top:8px;
-        }
-        #file-input {
-            display: none;
-        }
-        .album {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
-            gap:16px;
-        }
-        .photo-card {
-            background:#fff;
-            border-radius:10px;
-            overflow:hidden;
-            box-shadow:0 2px 8px #00000015;
-        }
-        .photo-card img {
-            width:100%;
-            height:180px;
-            object-fit:cover;
-        }
-        .photo-card button {
-            width:100%;
-            border:none;
-            padding:8px;
-            background:#ff4d4f;
-            color:white;
-            cursor:pointer;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>临时文件交换站 | GitHub Pages</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
+body{background:#f5f7fa;padding:40px}
+.box{max-width:650px;margin:0 auto;background:#fff;padding:30px;border-radius:14px;box-shadow:0 2px 12px #00000012}
+h1{text-align:center;color:#222;margin-bottom:8px;font-size:24px}
+.desc{text-align:center;color:#666;margin-bottom:24px;font-size:14px}
+.upload-area{border:2px dashed #3b82f6;border-radius:10px;padding:40px;text-align:center;margin-bottom:20px;cursor:pointer}
+.upload-area:hover{background:#f0f7ff}
+#file{display:none}
+.row{margin-bottom:16px}
+label{display:block;margin-bottom:6px;color:#444}
+input{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+button{width:100%;padding:12px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer}
+button:disabled{background:#94b8f5;cursor:not-allowed}
+.result{margin-top:20px;padding:14px;background:#ecfdf3;border-radius:8px;word-break:break-all;display:none}
+#status{margin-top:12px;color:#333;text-align:center}
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>🏠 宿舍相册</h1>
-        <p class="desc">网站部署于 GitHub Pages | 点击或拖拽上传图片</p>
-        <div class="upload-box" id="dropArea">
-            <p>点击 或者 拖拽图片到这里上传</p>
-            <p>支持jpg/png</p>
-            <input type="file" id="file-input" accept="image/*" multiple>
-        </div>
-
-        <div class="album" id="album"></div>
-    </div>
+<div class="box">
+  <h1>临时文件交换站</h1>
+  <p class="desc">网站托管于 GitHub Pages｜文件24小时自动销毁</p>
+  <div class="upload-area" id="drop">
+    <p>点击或者拖拽文件上传</p>
+    <input type="file" id="file">
+  </div>
+  <div class="row">
+    <label>文件保存时长（天，推荐填1=24小时）</label>
+    <input type="number" id="expireDay" value="1" min="1" max="7">
+  </div>
+  <button id="submit">上传文件</button>
+  <div id="status"></div>
+  <div class="result" id="res">
+    <p>✅上传成功！下载链接：</p>
+    <p id="link"></p>
+    <p>⚠️到期文件自动销毁，保存好链接</p>
+  </div>
+</div>
 
 <script>
-    const dropArea = document.getElementById('dropArea');
-    const fileInput = document.getElementById('file-input');
-    const album = document.getElementById('album');
-    // 图片数组，本地存储key
-    let imgList = JSON.parse(localStorage.getItem("dormImg")) || [];
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('file');
+const expireInput = document.getElementById('expireDay');
+const submitBtn = document.getElementById('submit');
+const resultBox = document.getElementById('res');
+const linkText = document.getElementById('link');
+const statusText = document.getElementById('status');
 
-    // 渲染相册
-    function renderAlbum(){
-        album.innerHTML = "";
-        imgList.forEach((src,idx)=>{
-            const div = document.createElement('div');
-            div.className = 'photo-card';
-            div.innerHTML = `
-                <img src="${src}" alt="宿舍照片">
-                <button onclick="delImg(${idx})">删除</button>
-            `
-            album.appendChild(div);
-        })
-    }
-    // 删除图片
-    window.delImg = function(index){
-        imgList.splice(index,1);
-        localStorage.setItem("dormImg",JSON.stringify(imgList));
-        renderAlbum();
-    }
+drop.onclick = ()=> fileInput.click();
+drop.ondragover = e=>e.preventDefault();
+drop.ondrop = e=>{
+  e.preventDefault();
+  fileInput.files = e.dataTransfer.files;
+}
 
-    // 点击上传
-    dropArea.onclick = ()=> fileInput.click();
-
-    // 拖拽上传
-    dropArea.ondragover = (e)=>{e.preventDefault(); dropArea.style.background='#ecf5ff';}
-    dropArea.ondragleave = ()=> dropArea.style.background='#fff';
-    dropArea.ondrop = (e)=>{
-        e.preventDefault();
-        dropArea.style.background='#fff';
-        handleFiles(e.dataTransfer.files);
-    }
-
-    // 文件选择
-    fileInput.onchange = ()=> handleFiles(fileInput.files);
-
-    function handleFiles(files){
-        for(let file of files){
-            if(!file.type.startsWith('image/')) continue;
-            const reader = new FileReader();
-            reader.onload = function(e){
-                imgList.push(e.target.result);
-                localStorage.setItem("dormImg",JSON.stringify(imgList));
-                renderAlbum();
-            }
-            reader.readAsDataURL(file);
-        }
-    }
-    // 页面加载渲染
-    renderAlbum();
+submitBtn.onclick = async ()=>{
+  const file = fileInput.files[0];
+  if(!file) return alert("请选择文件");
+  const expireDays = Number(expireInput.value);
+  submitBtn.disabled = true;
+  statusText.innerText = "正在上传，请稍候...";
+  resultBox.style.display = "none";
+  try {
+    // PUT上传到 transfer.sh，设置过期天数
+    const res = await fetch(`https://transfer.sh/${file.name}`, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Max-Days": expireDays
+      }
+    });
+    if(!res.ok) throw new Error("上传失败");
+    const url = await res.text();
+    linkText.innerText = url;
+    resultBox.style.display = "block";
+    statusText.innerText = "";
+  } catch(err){
+    statusText.innerText = "❌上传失败！transfer.sh国内访问不稳定，可以更换网络重试";
+    console.error(err);
+  }
+  submitBtn.disabled = false;
+}
 </script>
 </body>
 </html>
