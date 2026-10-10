@@ -3,89 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>临时文件交换站 | GitHub Pages</title>
+<title>访客计数器</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui}
-body{background:#f5f7fa;padding:40px}
-.box{max-width:650px;margin:0 auto;background:#fff;padding:30px;border-radius:14px;box-shadow:0 2px 12px #00000012}
-h1{text-align:center;color:#222;margin-bottom:8px;font-size:24px}
-.desc{text-align:center;color:#666;margin-bottom:24px;font-size:14px}
-.upload-area{border:2px dashed #3b82f6;border-radius:10px;padding:40px;text-align:center;margin-bottom:20px;cursor:pointer}
-.upload-area:hover{background:#f0f7ff}
-#file{display:none}
-.row{margin-bottom:16px}
-label{display:block;margin-bottom:6px;color:#444}
-input{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:16px}
-button{width:100%;padding:12px;background:#3b82f6;color:white;border:none;border-radius:8px;font-size:16px;cursor:pointer}
-button:disabled{background:#94b8f5;cursor:not-allowed}
-.result{margin-top:20px;padding:14px;background:#ecfdf3;border-radius:8px;word-break:break-all;display:none}
-#status{margin-top:12px;color:#333;text-align:center}
+*{margin:0;padding:0;box-sizing:border-box}
+body {
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#f5f7fa;
+  font-family:system-ui, sans-serif;
+}
+.box {
+  text-align:center;
+  background:#fff;
+  padding:40px 60px;
+  border-radius:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+}
+#text {
+  font-size:28px;
+  color:#222;
+}
 </style>
 </head>
 <body>
 <div class="box">
-  <h1>临时文件交换站</h1>
-  <p class="desc">网站托管于 GitHub Pages｜文件24小时自动销毁</p>
-  <div class="upload-area" id="drop">
-    <p>点击或者拖拽文件上传</p>
-    <input type="file" id="file">
-  </div>
-  <div class="row">
-    <label>文件保存时长（天，推荐填1=24小时）</label>
-    <input type="number" id="expireDay" value="1" min="1" max="7">
-  </div>
-  <button id="submit">上传文件</button>
-  <div id="status"></div>
-  <div class="result" id="res">
-    <p>✅上传成功！下载链接：</p>
-    <p id="link"></p>
-    <p>⚠️到期文件自动销毁，保存好链接</p>
-  </div>
+  <p id="text"></p>
 </div>
-
 <script>
-const drop = document.getElementById('drop');
-const fileInput = document.getElementById('file');
-const expireInput = document.getElementById('expireDay');
-const submitBtn = document.getElementById('submit');
-const resultBox = document.getElementById('res');
-const linkText = document.getElementById('link');
-const statusText = document.getElementById('status');
-
-drop.onclick = ()=> fileInput.click();
-drop.ondragover = e=>e.preventDefault();
-drop.ondrop = e=>{
-  e.preventDefault();
-  fileInput.files = e.dataTransfer.files;
+// 读取本地存储
+let count = localStorage.getItem("visitorCount");
+if(count === null){
+  count = 1;
+}else{
+  count = Number(count) + 1;
 }
-
-submitBtn.onclick = async ()=>{
-  const file = fileInput.files[0];
-  if(!file) return alert("请选择文件");
-  const expireDays = Number(expireInput.value);
-  submitBtn.disabled = true;
-  statusText.innerText = "正在上传，请稍候...";
-  resultBox.style.display = "none";
-  try {
-    // PUT上传到 transfer.sh，设置过期天数
-    const res = await fetch(`https://transfer.sh/${file.name}`, {
-      method: "PUT",
-      body: file,
-      headers: {
-        "Max-Days": expireDays
-      }
-    });
-    if(!res.ok) throw new Error("上传失败");
-    const url = await res.text();
-    linkText.innerText = url;
-    resultBox.style.display = "block";
-    statusText.innerText = "";
-  } catch(err){
-    statusText.innerText = "❌上传失败！transfer.sh国内访问不稳定，可以更换网络重试";
-    console.error(err);
-  }
-  submitBtn.disabled = false;
-}
+localStorage.setItem("visitorCount", count);
+document.getElementById("text").innerText = `你是第 ${count} 个进入这个网站的人`;
 </script>
 </body>
 </html>
