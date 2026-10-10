@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>访客统计</title>
+<title>网页访问统计</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -74,12 +74,7 @@ body {
 .num-bounce{
   animation: bounceNum 0.4s ease;
 }
-.sub-text{
-  margin-top:18px;
-  font-size:18px;
-  color:var(--sub-text);
-}
-#busuanzi_container_site_uv{
+#busuanzi_container_site_pv{
   display:none;
   animation: textFade 0.6s ease;
 }
@@ -112,9 +107,8 @@ body {
 <div class="box">
   <p class="loading-text" id="loading">加载中...</p>
   <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-  <span id="busuanzi_container_site_uv">
-    <p id="tip">你是第 <span class="count-num" id="busuanzi_value_site_uv"></span> 个进入这个网站的人</p>
-    <p class="sub-text">网站总访问次数：<span id="busuanzi_value_site_pv"></span></p>
+  <span id="busuanzi_container_site_pv">
+    <p id="tip">本网页总访问次数：<span class="count-num" id="busuanzi_value_site_pv"></span> 次</p>
   </span>
   <button id="themeBtn">切换深色/浅色模式</button>
 </div>
@@ -161,10 +155,10 @@ function animateParticles(){
 }
 animateParticles();
 
-// 不蒜子加载
+// 不蒜子加载逻辑（只监听PV）
 const checkInterval = setInterval(()=>{
-  const container = document.getElementById("busuanzi_container_site_uv");
-  const numEl = document.getElementById("busuanzi_value_site_uv");
+  const container = document.getElementById("busuanzi_container_site_pv");
+  const numEl = document.getElementById("busuanzi_value_site_pv");
   if(container.style.display !== "none"){
     clearInterval(checkInterval);
     document.getElementById("loading").style.display = "none";
