@@ -1,12 +1,149 @@
-<p class="MsoNormal" style="margin-left:72.0pt;text-indent:-72.0pt;mso-char-indent-count:
--1.5"><span lang="EN-US" style="font-size:48.0pt;color:#4472C4;mso-themecolor:
-accent1">106宿舍</span><span style="font-size:48.0pt;color:#4472C4;mso-themecolor:
-accent1"><span lang="EN-US"><br>
-</span></span><span lang="EN-US" style="font-size:12.0pt;color:#C55A11;
-mso-themecolor:accent2;mso-themeshade:191;mso-style-textfill-fill-color:#C55A11;
-mso-style-textfill-fill-themecolor:accent2;mso-style-textfill-fill-alpha:100.0%;
-mso-style-textfill-fill-colortransforms:lumm=75000"></span><span style="font-size:12.0pt;color:#C55A11;mso-themecolor:accent2;mso-themeshade:
-191;mso-style-textfill-fill-color:#C55A11;mso-style-textfill-fill-themecolor:
-accent2;mso-style-textfill-fill-alpha:100.0%;mso-style-textfill-fill-colortransforms:
-lumm=75000"></span><u><span lang="EN-US" style="font-size:12.0pt;color:#4472C4;
-mso-themecolor:accent1"></span></u><span lang="EN-US" style="font-size:48.0pt;color:#4472C4;mso-themecolor:accent1"><o:p></o:p></span></p>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>宿舍相册 | GitHub Pages</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, sans-serif;
+        }
+        body {
+            background-color: #f4f6f8;
+            padding: 30px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .desc{
+            text-align:center;
+            color:#666;
+            margin-bottom:24px;
+        }
+        .upload-box {
+            border: 2px dashed #409eff;
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background: #fff;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-bottom:30px;
+        }
+        .upload-box:hover {
+            background: #ecf5ff;
+        }
+        .upload-box p {
+            color:#666;
+            margin-top:8px;
+        }
+        #file-input {
+            display: none;
+        }
+        .album {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+            gap:16px;
+        }
+        .photo-card {
+            background:#fff;
+            border-radius:10px;
+            overflow:hidden;
+            box-shadow:0 2px 8px #00000015;
+        }
+        .photo-card img {
+            width:100%;
+            height:180px;
+            object-fit:cover;
+        }
+        .photo-card button {
+            width:100%;
+            border:none;
+            padding:8px;
+            background:#ff4d4f;
+            color:white;
+            cursor:pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 宿舍相册</h1>
+        <p class="desc">网站部署于 GitHub Pages | 点击或拖拽上传图片</p>
+        <div class="upload-box" id="dropArea">
+            <p>点击 或者 拖拽图片到这里上传</p>
+            <p>支持jpg/png</p>
+            <input type="file" id="file-input" accept="image/*" multiple>
+        </div>
+
+        <div class="album" id="album"></div>
+    </div>
+
+<script>
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('file-input');
+    const album = document.getElementById('album');
+    // 图片数组，本地存储key
+    let imgList = JSON.parse(localStorage.getItem("dormImg")) || [];
+
+    // 渲染相册
+    function renderAlbum(){
+        album.innerHTML = "";
+        imgList.forEach((src,idx)=>{
+            const div = document.createElement('div');
+            div.className = 'photo-card';
+            div.innerHTML = `
+                <img src="${src}" alt="宿舍照片">
+                <button onclick="delImg(${idx})">删除</button>
+            `
+            album.appendChild(div);
+        })
+    }
+    // 删除图片
+    window.delImg = function(index){
+        imgList.splice(index,1);
+        localStorage.setItem("dormImg",JSON.stringify(imgList));
+        renderAlbum();
+    }
+
+    // 点击上传
+    dropArea.onclick = ()=> fileInput.click();
+
+    // 拖拽上传
+    dropArea.ondragover = (e)=>{e.preventDefault(); dropArea.style.background='#ecf5ff';}
+    dropArea.ondragleave = ()=> dropArea.style.background='#fff';
+    dropArea.ondrop = (e)=>{
+        e.preventDefault();
+        dropArea.style.background='#fff';
+        handleFiles(e.dataTransfer.files);
+    }
+
+    // 文件选择
+    fileInput.onchange = ()=> handleFiles(fileInput.files);
+
+    function handleFiles(files){
+        for(let file of files){
+            if(!file.type.startsWith('image/')) continue;
+            const reader = new FileReader();
+            reader.onload = function(e){
+                imgList.push(e.target.result);
+                localStorage.setItem("dormImg",JSON.stringify(imgList));
+                renderAlbum();
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+    // 页面加载渲染
+    renderAlbum();
+</script>
+</body>
+</html>
