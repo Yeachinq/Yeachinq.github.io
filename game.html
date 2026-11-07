@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#05070a" />
+<title>地牢回响 · 第一层</title>
+<link rel="stylesheet" href="assets/css/game.css" />
+</head>
+<body>
+<div id="stage">
+  <canvas id="game" aria-label="地牢场景，用 WASD 或方向键移动"></canvas>
+
+  <div class="hud">
+    <div class="hud-left">
+      <p class="hud-floor">第一层</p>
+      <p class="hud-sub" id="hud-sub">地牢</p>
+    </div>
+    <a class="hud-btn" href="index.html">返回大厅</a>
+  </div>
+
+  <p class="toast" id="toast" hidden>下一层还在挖</p>
+
+  <div class="hint" id="hint">
+    <span>WASD / 方向键 移动</span>
+    <span>走进墙上的门 → 下一个房间</span>
+    <span>手机：左下摇杆拖动</span>
+  </div>
+</div>
+
+<script src="assets/js/game.js"></script>
+</body>
+</html>
