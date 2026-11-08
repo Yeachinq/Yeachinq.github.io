@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#05070a" />
+<title>奶蛙冒险</title>
+<link rel="stylesheet" href="assets/css/style.css" />
+<link rel="stylesheet" href="assets/css/game.css" />
+
+<!-- 提前把图片拉下来，避免进游戏后才开始下载 -->
+<link rel="preload" as="image" href="assets/img/hero-front.png?v=2" />
+<link rel="preload" as="image" href="assets/img/hero-side.png?v=2" />
+<link rel="preload" as="image" href="assets/img/hero-back.png?v=2" />
+<link rel="preload" as="image" href="assets/img/lobby-frog.png" />
+<link rel="preload" as="image" href="assets/img/boss-face.png?v=2" />
+</head>
+<body>
+
+<!-- ============ 大厅 ============ -->
+<div class="layer" id="app">
+  <canvas id="scene" aria-label="地牢大厅场景，点击中间的传送门开始游戏"></canvas>
+  <img class="lobby-frog" src="assets/img/lobby-frog.png" alt="" aria-hidden="true" />
+
+  <button id="btn-fullscreen" class="icon-pixel" type="button" aria-label="全屏">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="square" aria-hidden="true">
+      <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+    </svg>
+  </button>
+
+  <div class="lobby-modes">
+    <button class="mode-btn" id="mode-campaign" type="button">
+      <span class="mode-name">开始游戏</span>
+      <span class="mode-sub">15 层 · 击败最终 BOSS</span>
+    </button>
+    <button class="mode-btn mode-btn--ghost" id="mode-endless" type="button">
+      <span class="mode-name">无尽模式</span>
+      <span class="mode-sub">没有层数上限</span>
+    </button>
+    <button class="rules-link" id="btn-rules" type="button">随机规则一览</button>
+  </div>
+
+  <div class="rules" id="rules" hidden>
+    <div class="rules-panel">
+      <p class="rules-kicker">每层随机一条</p>
+      <h2 class="rules-title">随机规则一览</h2>
+      <div class="rules-list" id="rules-list"></div>
+      <button class="menu-item" id="rules-close" type="button">关闭</button>
+    </div>
+  </div>
+
+  <div class="lobby-meta">
+    <p class="author">
+      <a id="author-link" href="https://space.bilibili.com/397548424?spm_id_from=333.337.0.0"
+         target="_blank" rel="noopener noreferrer">作者：Yeachin</a>
+    </p>
+    <p class="version">Alpha0.1 · LOBBY</p>
+    <p class="disclaimer">本小游戏全部由 AI 制作，如有雷同纯属巧合</p>
+  </div>
+</div>
+
+<!-- ============ 地牢 ============ -->
+<div class="layer" id="stage" hidden>
+  <canvas id="game" aria-label="地牢场景，用 WASD 或方向键移动"></canvas>
+  <canvas id="hero" aria-hidden="true"></canvas>
+
+  <div class="hud">
+    <div class="hud-left">
+      <p class="hud-floor" id="hud-floor">第一层</p>
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-label">HP</span>
+          <span class="stat-bar"><i id="hp-fill"></i></span>
+          <span class="stat-val" id="hp-val">100/100</span>
+          <span class="stat-def" id="hp-def" hidden>DEF 0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">EP</span>
+          <span class="stat-bar"><i id="ep-fill"></i></span>
+          <span class="stat-val" id="ep-val">100/100</span>
+        </div>
+        <div class="xp-row">
+          <span class="xp-level" id="xp-level">Lv.1</span>
+          <span class="xp-bar"><i id="xp-fill"></i></span>
+          <span class="xp-val" id="xp-val">0/35</span>
+        </div>
+        <p class="hud-time" id="hud-time">00:00</p>
+      </div>
+    </div>
+    <button class="hud-btn hud-gear" id="btn-menu" type="button" aria-label="设置"
+            aria-haspopup="dialog" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="3.2" />
+        <circle cx="12" cy="12" r="7" />
+        <path d="M12 3.2v2M12 18.8v2M3.2 12h2M18.8 12h2M5.8 5.8l1.4 1.4M16.8 16.8l1.4 1.4M18.2 5.8l-1.4 1.4M7.2 16.8l-1.4 1.4" />
+      </svg>
+    </button>
+    <p class="hud-rule" id="hud-rule" hidden></p>
+  </div>
+
+  <div class="hint" id="hint">
+    <span>WASD / 方向键 移动</span>
+    <span>J / 空格 射击 · Shift 冲刺 · Q 震荡</span>
+    <span>手机：左摇杆 + 右下攻击 / 冲刺 / 震荡</span>
+  </div>
+
+  <button class="skill skill-shock" id="btn-shock" type="button" aria-label="震荡波">
+    <span>震荡</span>
+  </button>
+
+  <button class="skill skill-parry" id="btn-parry" type="button" aria-label="盾反">
+    <span>盾反</span>
+  </button>
+
+  <button class="skill skill-dash" id="btn-dash" type="button" aria-label="冲刺">
+    <span>冲刺</span>
+  </button>
+
+  <div class="pad-ghost" id="pad-ghost" hidden aria-hidden="true"></div>
+
+  <div class="pad-editor" id="pad-editor" hidden>
+    <div class="pad-editor-bar">
+      <span class="pad-editor-tip">拖动键位调整位置</span>
+      <button class="pad-editor-btn" id="pad-reset" type="button">重置</button>
+      <button class="pad-editor-btn pad-editor-btn--main" id="pad-done" type="button">保存</button>
+    </div>
+  </div>
+
+  <button class="attack" id="attack" type="button" aria-label="攻击">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="7" />
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+    </svg>
+  </button>
+
+  <button class="next-floor" id="next-floor" type="button" hidden>下到第二层</button>
+
+  <div class="cards" id="cards" hidden>
+    <div class="cards-panel">
+      <p class="cards-kicker">LEVEL UP</p>
+      <h2 class="cards-title">选择一项强化</h2>
+      <div class="cards-row" id="cards-row"></div>
+    </div>
+  </div>
+
+  <div class="death" id="death" hidden>
+    <div class="death-card">
+      <p class="death-kicker">YOU DIED</p>
+      <h2 class="death-title">你倒下了</h2>
+      <p class="death-note" id="death-note">倒在第 1 层</p>
+      <button class="menu-item" id="death-home" type="button">回到大厅</button>
+    </div>
+  </div>
+
+  <div class="victory" id="victory" hidden>
+    <div class="victory-card">
+      <p class="victory-kicker">VICTORY</p>
+      <h2 class="victory-title">通关</h2>
+      <p class="victory-time" id="victory-time">用时 00:00</p>
+      <button class="menu-item" id="victory-home" type="button">回到大厅</button>
+    </div>
+  </div>
+
+  <div class="menu" id="menu" hidden>
+    <div class="menu-panel" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+      <p class="menu-kicker">PAUSED</p>
+      <h2 class="menu-title" id="menu-title">设置</h2>
+      <button class="menu-item" id="menu-resume" type="button">继续游戏</button>
+      <button class="menu-item" id="menu-pad" type="button">调整键位</button>
+      <button class="menu-item" id="menu-fullscreen" type="button">全屏</button>
+      <div class="menu-slider">
+        <label class="menu-slider-label" for="music-volume">音乐</label>
+        <input class="menu-slider-input" id="music-volume" type="range" min="0" max="100" step="1" value="22" />
+        <span class="menu-slider-val" id="music-volume-val">22</span>
+      </div>
+      <button class="menu-item" id="menu-sound" type="button">声音：开</button>
+      <button class="menu-item menu-item--ghost" id="menu-home" type="button">返回大厅</button>
+      <p class="menu-tip">Esc 关闭</p>
+    </div>
+  </div>
+</div>
+
+<!-- 竖屏提示（两个场景共用） -->
+<div class="rotate-hint" aria-hidden="true">
+  <div class="rotate-phone"></div>
+  <p>请横屏游玩</p>
+</div>
+
+<script src="assets/js/audio.js"></script>
+<script src="assets/js/lobby.js"></script>
+<script src="assets/js/game.js"></script>
+</body>
+</html>
